@@ -7,8 +7,13 @@ EMULATOR=${EMULATOR:="$ANDROID_SDK_ROOT/emulator/emulator"}
 ADB=${ADB:="$ANDROID_SDK_ROOT/platform-tools/adb"}
 ANDROID_SERIAL=${ANDROID_SERIAL:=""}
 
-if [ "$ANDROID_SDK_ROOT" = "" ]; then
-    echo "ANDROID_SDK_ROOT is not set. Please set ANDROID_SDK_ROOT to the path of your Android SDK."
+if [ "$ADB" = "" ]; then
+    echo "ADB is not set. Please set ADB to the path of your Android SDK."
+    exit 1
+fi
+
+if [ "$EMULATOR" = "" ]; then
+    echo "EMULATOR is not set. Please set EMULATOR to the path of your Android SDK."
     exit 1
 fi
 
@@ -60,12 +65,20 @@ select_device_or_emulator() {
     fi
 }
 
+# Run on the connected device or emulator
 if [ -z "$ANDROID_SERIAL" ]; then
     select_device_or_emulator
 fi
 
 echo "Installing app"
+$ADB -s $ANDROID_SERIAL uninstall im.status.tablet
 $ADB -s $ANDROID_SERIAL install -r $APP
+if [ $? -ne 0 ]; then
+    echo "App installation failed."
+    exit 1
+else
+    echo "App installed successfully."
+fi
 
 echo "App installed. Starting app"
 if [ "$QT_VERSION" = "6" ]; then
