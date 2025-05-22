@@ -1,6 +1,7 @@
 # Status Tablet Build System
 
 This repository contains the build system for Status Tablet, supporting both iOS and Android platforms with Qt5 and Qt6 compatibility.
+Cross-compilation is currently supported on MacOs and Linux. Windows is not supported. The dev setup runs well on WSL with Windows emulator.
 
 ## Table of Contents
 - [Quick Start Guide (Container Builds) - Android](#quick-start-guide-container-builds)
@@ -19,133 +20,42 @@ This section is for users who want to get up and running quickly with minimal te
 - ADB (Android Debug Bridge)
 - Android Emulator
 
-### One-Time Setup
+### Quick setup - android
 
-1. **Install Docker:**
+1. **Install dependencies:**
+   ```bash
+    git clone <repository-url>
+    cd <repository-name>
+    git submodule update --init --recursive
+   ```
+
    ```bash
    # macOS
-   brew install docker
+   brew install docker act android-platform-tools android-commandlinetools
+   ```
 
+   ```bash
    # Ubuntu
    sudo apt-get update
-   sudo apt-get install docker.io
-   
-   # Windows
-   # Download and install Docker Desktop from https://www.docker.com/products/docker-desktop
-   ```
-
-2. **Install act:**
-   ```bash
-   # macOS
-   brew install act
-
-   # Ubuntu - installing in /bin
+   sudo apt install android-sdk-common google-android-emulator-installer docker.io
+   # Installing act in /bin
    (cd /;curl https://raw.githubusercontent.com/nektos/act/master/install.sh | sudo bash)
-   
-   # Windows - using Chocolatey
-   choco install act-cli
-   # or with scoop
-   scoop install act
-   # or download the binary directly from https://github.com/nektos/act/releases
    ```
 
-3. **Install Android tools:**
-
-   Can be installed through Android Studio or following the steps below
-
-   ```bash
-   # macOS
-   brew install android-platform-tools
-
-   # Ubuntu
-   sudo apt-get install android-tools-adb android-tools-fastboot
-   
-   # Windows - using Chocolatey
-   choco install adb
-   # or download the SDK Platform Tools from https://developer.android.com/studio/releases/platform-tools
-   ```
-
-4. **Set up Android environment:**
-   ```bash
-   # For macOS, add to ~/.zshrc or ~/.bash_profile:
-   export ANDROID_HOME=$HOME/Library/Android/sdk
-   export PATH=$PATH:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator
-
-   # For Ubuntu, add to ~/.bashrc:
-   export ANDROID_HOME=$HOME/Android/Sdk
-   export PATH=$PATH:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator
-
-   # For Windows, add to System Environment Variables:
-   # ANDROID_HOME = C:\Users\<username>\AppData\Local\Android\Sdk
-   # Add to PATH: %ANDROID_HOME%\platform-tools;%ANDROID_HOME%\emulator
-   
-   # After adding to your shell config, reload it:
-   source ~/.zshrc  # or ~/.bash_profile or ~/.bashrc
-   # For Windows, restart your terminal or command prompt
-   ```
-
-5. **Verify installation:**
+2. **Verify installation:**
    ```bash
    adb --version
    emulator --version
+   avdmanager --version
+   sdkmanager --version
    ```
 
-### Building and Running the App
-
-1. **Clone the repository:**
+2. **Running the app**
    ```bash
-   git clone <repository-url>
-   cd <repository-name>
-   git submodule update --init --recursive
-   ```
-
-2. **Set the target architecture (optional):**
-   ```bash
-   # Choose one of: arm64, arm, x86_64, x86
-   
-   # macOS/Linux
-   export ARCH=arm64
-   
-   # Windows (Command Prompt)
-   set ARCH=arm64
-   
-   # Windows (PowerShell)
-   $env:ARCH = "arm64"
-   ```
-
-3. **Build the APK:**
-   ```bash
-   # macOS/Linux
-   make -f ContainerBuilds.mk
-   
-   # Windows
-   # If you have GNU Make installed
-   make -f ContainerBuilds.mk
-   
-   # Alternatively, with Docker directly on Windows
-   docker run --rm -it -v ${PWD}:/workspace -w /workspace -e ARCH=%ARCH% android-builder:latest /bin/bash -c "make android"
-   ```
-
-4. **Run the app:**
-   ```bash
-   # macOS/Linux
+   # Linux and MacOS
    make -f ContainerBuilds.mk run
-   
-   # Windows
-   # If you have GNU Make installed
-   make -f ContainerBuilds.mk run
-   
-   # Alternatively using adb directly
-   adb install -r bin/Status-tablet.apk
-   adb shell am start -n im.status.tablet/org.qtproject.qt.android.bindings.QtActivity
    ```
 
-5. **Cleaning:**
-   ```bash
-   # macOS/Linux/Windows
-   make -f ContainerBuilds.mk clean
-   ```
-ß
 ### What Happens Behind the Scenes
 - The build process uses GitHub Actions containers to ensure consistent builds
 - All required tools and dependencies are provided by the container
@@ -217,8 +127,8 @@ This section is for developers who want full control over the build environment.
 
 ### Android Development Setup
 
-#### Prerequisites
-- JDK 11 (17 for Qt6)
+#### Prerequisites - can be installed using the Android Studio
+- JDK 17 (11 for Qt5)
 - Android SDK
 - Android NDK (21.3.6528147 for Qt5, 26.1.10909125 for Qt6)
 - Android emulator
@@ -238,11 +148,6 @@ This section is for developers who want full control over the build environment.
 
    # Add Android tools to PATH
    export PATH="$ANDROID_HOME/emulator:$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools:$PATH"
-
-   # Set target architecture
-   export OS=android
-   export ARCH=arm64  # arm64-v8a
-   export ANDROID_API=28
    ```
 
 2. **Install Qt for Android:**
@@ -257,12 +162,12 @@ This section is for developers who want full control over the build environment.
 
    # For Qt6 (includes desktop tools)
    # arm host
-   aqt install-qt mac android 6.8.3 android_arm64_v8a -m all --autodesktop
+   aqt install-qt mac android 6.8.3 android_arm64_v8a -O ${QT_INSTALL_DIR} -m all --autodesktop
    # x64 host
-   aqt install-qt mac android 6.8.3 android_x86_64 -m all --autodesktop
+   aqt install-qt mac android 6.8.3 android_x86_64 -O ${QT_INSTALL_DIR}  -m all --autodesktop
    # optional
-   aqt install-qt mac android 6.8.3 android_x86 -m all
-   aqt install-qt mac android 6.8.3 android_armv7 -m all
+   aqt install-qt mac android 6.8.3 android_x86 -O ${QT_INSTALL_DIR}  -m all
+   aqt install-qt mac android 6.8.3 android_armv7 -O ${QT_INSTALL_DIR} -m all
 
    # Add Qt to PATH. Qt6 needs both ios bin and host libexec
    export QTDIR_BIN=${QT_INSTALL_DIR}/{QT_VERSION}/ios/bin
@@ -270,7 +175,7 @@ This section is for developers who want full control over the build environment.
    export PATH=${QTDIR_BIN}:${QT_HOST_LIBEXEC}:${PATH}
    ```
 
-3. **Create Android Virtual Device (if needed):**
+3. **Create Android Virtual Device (optional - one will be created by default):**
    ```bash
    # It's best to choose the host arch
    avdmanager create avd -n "Test_avd_x64" -k "system-images;android-Baklava;google_apis_playstore;x86_64" -d 70
@@ -406,5 +311,3 @@ When contributing to the build system:
 2. Qt6 compatibility is mandatory. Qt5 is nice to have for now
 3. Update this README if necessary
 4. Follow the existing build system patterns
-
-
