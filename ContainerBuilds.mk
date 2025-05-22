@@ -17,7 +17,7 @@ $(TARGET): $(STATUS_DESKTOP_NIM_FILES) $(STATUS_DESKTOP_UI_FILES) $(STATUS_Q_FIL
 
 run: $(TARGET)
 	@echo "Running GitHub task"
-	@APP=$(TARGET) QT_VERSION=$(QT_VERSION) ADB=$(shell which adb) EMULATOR=$(shell which emulator) $(RUN_SCRIPT)
+	@APP=$(TARGET) QT_VERSION=$(QT_VERSION) ADB=$(shell which adb) EMULATOR=$(shell which emulator) AVDMANAGER=$(shell which avdmanager) SDKMANAGER=$(shell which sdkmanager) $(RUN_SCRIPT)
 
 clean:
 	@echo "Cleaning GitHub task"
