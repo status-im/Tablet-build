@@ -1,3 +1,5 @@
+# Deprecated! The build system has been moved to https://github.com/status-im/status-desktop
+
 # Status Tablet Build System
 
 This repository contains the build system for Status Tablet, supporting both iOS and Android platforms with Qt5 and Qt6 compatibility.
